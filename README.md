@@ -19,3 +19,4 @@ Intinya, Solidity itu alat buat ngasih kehidupan ke ide-ide di blockchain. Gampa
 ## Isi Repo Ini
 
 Di sini aku bakal upload kode-kode Solidity, mulai dari yang sederhana sampe yang agak bikin pusing. Tiap kode bakal aku kasih penjelasan singkat biar kamu ngerti apa yang lagi terjadi. Stay tuned ya, bakal aku update terus kalau ada inspirasi baru!
+soalnya aku baru belajar juga xixixi
