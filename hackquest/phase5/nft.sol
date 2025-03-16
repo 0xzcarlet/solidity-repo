@@ -2,46 +2,89 @@
 pragma solidity ^0.8.17;
 
 contract MyNFT {
-    struct Token {
-        string name;
-        string description;
-        address owner;
-    }
+  // Define a Token struct to store NFT information
+  struct Token {
+    string name; // NFT name
+    string description; // NFT description
+    address owner; // NFT owner address
+  }
 
-    mapping(uint256 => Token) private tokens;
-    mapping(address => uint256[]) private ownerTokens;
-    uint256 nextTokenId = 1;
+  // Use mapping to store the information of each NFT
+  mapping(uint256 => Token) private tokens;
 
-    function mint(
-        string memory _name,
-        string memory _description
-    ) public returns (uint256) {
-        Token memory newNFT = Token(_name, _description, msg.sender);
-        tokens[nextTokenId] = newNFT;
-        ownerTokens[msg.sender].push(nextTokenId);
-        nextTokenId++;
+  mapping(address => uint256[]) private ownerTokens;
+  // Record the next available NFT ID.
+  uint256 nextTokenId = 1;
 
-        return nextTokenId - 1;
-    }
+  // Create an NFT function to create a new NFT and assign it to the caller.
+  function mint(string memory _name, string memory _description)
+    public
+    returns (uint256)
+  {
+    Token memory newNFT = Token(_name, _description, msg.sender);
+    tokens[nextTokenId] = newNFT;
+    ownerTokens[msg.sender].push(nextTokenId);
+    nextTokenId++;
+    return nextTokenId - 1;
+  }
 
-    function getNFT(
-        uint256 _tokenId
+// untuk transfer dari 1 akun ke akun lain 
+  function transfer(address _to, uint256 _tokenId) public {
+    require(_to != address(0), "Invalid recipient");
+    require(_tokenId >= 1 && _tokenId < nextTokenId, "Invalid token ID");
+    Token storage token = tokens[_tokenId];
+    require(token.owner == msg.sender, "You don't own this token");
+    token.owner = _to;
+    deleteById(msg.sender, _tokenId);
+    ownerTokens[_to].push(_tokenId);
+  }
+
+  //Create a function to get information on a specified NFT
+  function getNFT(uint256 _tokenId)
+    public
+    view
+    returns (
+      string memory name,
+      string memory description,
+      address owner
     )
-        public
-        view
-        returns (string memory name, string memory description, address owner)
-    {
-        require(_tokenId >= 1 && _tokenId < nextTokenId, "Invalid token ID");
-        Token memory token = tokens[_tokenId];
+  {
+    require(_tokenId >= 1 && _tokenId < nextTokenId, "Invalid token ID");
+    Token memory token = tokens[_tokenId];
 
-        name = token.name;
-        description = token.description;
-        owner = token.owner;
-    }
+    name = token.name;
+    description = token.description;
+    owner = token.owner;
+  }
 
-    function getTokensByOwner(
-        address _owner
-    ) public view returns (uint256[] memory) {
-        return ownerTokens[_owner];
+  // Get all NFT IDs owned by a specified address
+
+  function getTokensByOwner(address _owner)
+    public
+    view
+    returns (uint256[] memory)
+  {
+    return ownerTokens[_owner];
+  }
+
+// menghapus nft dari owner nft
+  function deleteById(address account, uint256 _tokenId) internal {
+    uint256[] storage ownerTokenList = ownerTokens[account];
+    for (uint256 i = 0; i < ownerTokenList.length; i++) {
+      if (ownerTokenList[i] == _tokenId) {
+        ownerTokenList[i] = ownerTokenList[ownerTokenList.length - 1];
+        ownerTokenList.pop();
+        break;
+      }
     }
+  }
+
+// menghapus nft dari owner nft juga menghapusnya dari peredaran nft 
+  function burn(uint256 _tokenId) public {
+    require(_tokenId >= 1 && _tokenId < nextTokenId, "Invalid Token ID");
+    Token storage token = tokens[_tokenId];
+    require(token.owner == msg.sender, "You don't own this token");
+    deleteById(msg.sender, _tokenId);
+    delete tokens[_tokenId];
+  }
 }
